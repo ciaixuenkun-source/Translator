@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Trans</title>
+  <link rel="stylesheet" href="./styles.css"/>
+  <link rel="stylesheet" href="./online-service-enhancements.css"/>
+</head>
+<body>
+  <main class="window-shell">
+    <header class="titlebar">
+      <div class="title-group"><img src="../../renderer/assets/clover.svg" alt=""/><h1>设置</h1></div>
+      <div class="window-actions">
+        <button id="minimizeButton" type="button" aria-label="最小化">−</button>
+        <button id="closeButton" type="button" aria-label="关闭">×</button>
+      </div>
+    </header>
+
+    <nav class="primary-tabs" aria-label="设置页面">
+      <button class="primary-tab active" data-page="appearance">显示与外观</button>
+      <button class="primary-tab" data-page="translation-settings">翻译设置</button>
+      <button class="primary-tab" data-page="hotkeys">快捷键</button>
+      <button class="primary-tab" data-page="translation">翻译服务</button>
+    </nav>
+
+    <div class="page-scroll">
+      <div class="content">
+        <section class="settings-page active" data-page-panel="appearance">
+          <div class="setting-row first-row">
+            <div><strong>运行模式</strong><span>日常模式用于日常翻译，游戏模式使用蓝眼半脑袋。</span></div>
+            <div id="runtimeModeOptions" class="segmented-control"></div>
+          </div>
+          <div class="setting-row">
+            <div><strong>悬浮球显示</strong><span>完整显示和静默贴边都不同于主动完全隐藏。</span></div>
+            <div id="ballDisplayOptions" class="segmented-control"></div>
+          </div>
+          <div class="setting-row local-model-runtime-row">
+            <div><strong>本地模型手动开关</strong><span>开启后保持本地模型运行；关闭后恢复闲置 5 分钟自动关闭，但翻译仍可按需启动模型。</span></div>
+            <div class="local-model-runtime-controls">
+              <label class="compact-switch"><input id="localModelManualHold" type="checkbox"/><i></i><span>保持运行</span></label>
+              <span id="localModelRuntimeStatus" class="local-model-runtime-status stopped"><i></i><span>未运行</span></span>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div><strong>网络状态</strong><span>仅检测互联网连接，不代表翻译 API 一定可用。</span></div>
+            <div id="networkStatus" class="network-status unknown"><i></i><span>正在检测</span></div>
+          </div>
+          <section class="appearance-group overlay-style-card">
+            <div class="style-heading"><div><strong>游戏译文样式</strong><span>点击任一控件会打开独立实时预览。</span></div><label class="compact-switch heading-switch"><input id="shareOverlayStyles" type="checkbox" checked/><i></i><span>全屏和区域共用</span></label></div>
+            <div class="compact-grid style-primary-row">
+              <label class="compact-field"><span>正在编辑</span><select id="overlayStyleScope"><option value="fullscreen">全屏译文</option><option value="region">区域译文</option></select></label>
+              <label class="compact-field wide-font"><span>字体</span><select id="overlayFontFamily"><option>Microsoft YaHei UI</option><option>Microsoft YaHei</option><option>Segoe UI</option><option>SimSun</option><option>SimHei</option><option>KaiTi</option><option>Arial</option><option>Verdana</option><option>Tahoma</option><option>Georgia</option></select></label>
+              <label class="compact-field"><span>字号</span><input id="overlayFontSize" type="number" min="12" max="40" step="1"/></label>
+              <label class="compact-field"><span>粗细</span><select id="overlayFontWeight"><option value="400">正常</option><option value="500">中等</option><option value="600">半粗</option><option value="700">粗体</option><option value="800">特粗</option></select></label>
+            </div>
+            <div class="compact-grid two-column-row style-detail-row text-style-row">
+              <div class="compact-field"><span>文字颜色</span><div class="color-control"><button class="color-swatch" data-color-target="overlayTextColor" type="button" disabled><i></i><code></code></button><input id="overlayTextColor" type="text" hidden/></div></div>
+              <label class="compact-field"><span>文字透明度</span><div class="range-control"><input id="overlayTextOpacity" type="range" min="0" max="1" step="0.01"/><output data-range-for="overlayTextOpacity">100%</output></div></label>
+            </div>
+            <div class="compact-grid two-column-row style-detail-row background-style-row">
+              <div class="compact-field"><span>背景颜色</span><div class="color-control"><button class="color-swatch" data-color-target="overlayBackgroundColor" type="button" disabled><i></i><code></code></button><input id="overlayBackgroundColor" type="text" hidden/></div></div>
+              <label class="compact-field"><span>背景透明度</span><div class="range-control"><input id="overlayBackgroundOpacity" type="range" min="0" max="1" step="0.01"/><output data-range-for="overlayBackgroundOpacity">0%</output></div></label>
+            </div>
+            <div class="compact-grid outline-row style-detail-row">
+              <label class="compact-switch"><input id="overlayOutline" type="checkbox"/><i></i><span>文字描边</span></label>
+              <div class="compact-field outline-color-field"><span>描边颜色</span><div class="color-control"><button class="color-swatch" data-color-target="overlayOutlineColor" type="button" disabled><i></i><code></code></button><input id="overlayOutlineColor" type="text" hidden/></div></div>
+            </div>
+          </section>
+
+          <section class="appearance-group position-animation-group">
+            <div class="group-title"><strong>位置与动画</strong><label class="compact-switch heading-switch"><input id="shareOverlayPositionAnimation" type="checkbox" checked/><i></i><span>全屏和区域共用位置与动画</span></label></div>
+            <div class="compact-grid position-row">
+              <label class="compact-field"><span>显示位置</span><select id="overlayPosition"><option value="near-source">原文字附近</option><option value="above-source">原文上方</option><option value="below-source">原文下方</option><option value="left-source">原文左侧</option><option value="right-source">原文右侧</option><option value="top-center">屏幕顶部居中</option><option value="custom">自定义位置</option></select></label>
+              <label class="compact-switch"><input id="overlayFade" type="checkbox"/><i></i><span>淡入动画</span></label>
+              <label class="compact-field"><span>动画速度</span><div class="unit-input"><input id="overlayAnimationDuration" type="number" min="0" max="1000" step="10"/><span>毫秒</span></div></label>
+            </div>
+            <div class="compact-grid offset-row">
+              <label class="compact-field"><span>横向偏移</span><div class="unit-input"><input id="overlayOffsetX" type="number" min="-1000" max="1000"/><span>px</span></div></label>
+              <label class="compact-field"><span>纵向偏移</span><div class="unit-input"><input id="overlayOffsetY" type="number" min="-1000" max="1000"/><span>px</span></div></label>
+            </div>
+          </section>
+
+          <section class="appearance-group refresh-group">
+            <div class="group-title"><strong>译文显示与刷新</strong><span id="timingValidationMessage"></span></div>
+            <div class="timing-row">
+              <div class="timing-section-row fullscreen-timing-row">
+                <strong class="timing-kind">全屏翻译</strong>
+                <label class="compact-field"><span>全屏译文停留时间</span><div class="unit-input"><input id="gameFullscreenDuration" type="number" min="0.5" max="10" step="0.1" value="5.0"/><span>秒</span></div></label>
+              </div>
+              <div class="timing-section-row region-timing-row">
+                <strong class="timing-kind">区域翻译</strong>
+                <div class="region-timing-settings">
+                  <label class="compact-field"><span>区域翻译刷新间隔</span><div class="unit-input"><input id="regionRefreshInterval" type="number" min="1.0" max="15" step="0.1" value="1.6"/><span>秒</span></div></label>
+                  <label class="compact-field"><span>区域译文停留时间</span><div class="unit-input"><input id="regionOverlayDuration" type="number" min="0.1" max="14.9" step="0.1" value="1.2"/><span>秒</span></div></label>
+                </div>
+              </div>
+            </div>
+          </section>
+          <div class="style-actions"><button id="resetOverlayStyle" class="secondary-button" type="button">恢复默认样式</button><button id="saveOverlayStyle" class="primary-button" type="button">保存设置</button></div>
+        </section>
+
+        <section class="settings-page" data-page-panel="translation-settings">
+          <section class="automatic-translation-card">
+            <div><strong>&#40664;&#35748;&#32763;&#35793;&#26041;&#24335;</strong><span>&#33258;&#21160;&#32763;&#35793;&#25353;&#22266;&#23450;&#23433;&#20840;&#39034;&#24207;&#20351;&#29992;&#24050;&#37197;&#32622;&#26381;&#21153;&#12290;</span></div>
+            <div id="defaultTranslationMethod" class="segmented-control">
+              <label class="segment"><input type="radio" name="translationMethod" value="free-online"><span>&#20813;&#36153;&#22312;&#32447;</span></label>
+              <label class="segment"><input type="radio" name="translationMethod" value="ai-api"><span>AI &#31934;&#35793;</span></label>
+              <label class="segment"><input type="radio" name="translationMethod" value="local"><span>&#26412;&#22320;&#32763;&#35793;</span></label>
+            </div>
+            <label class="paid-api-switch"><input id="allowPaidApi" type="checkbox"><span>&#20801;&#35768;&#20351;&#29992;&#20184;&#36153; API</span></label>
+          </section>
+          <div class="translation-settings-list"><div class="setting-row direction-setting">
+            <div><strong>剪贴板文本翻译</strong><span>读取剪贴板文字，并使用此处设置进行翻译。</span></div>
+            <div class="scene-translation-controls"><div class="language-direction" data-direction-key="normalAlt1">
+              <select aria-label="剪贴板文本翻译原文语言"></select><span>→</span><select aria-label="剪贴板文本翻译目标语言"></select>
+            </div><label class="scene-method"><span>翻译方式</span><select data-method-key="normalAlt1" aria-label="剪贴板文本翻译方式"></select></label></div>
+          </div>
+          <div class="setting-row direction-setting">
+            <div><strong>截图识别翻译</strong><span>框选屏幕区域，OCR 后使用此处设置进行翻译。</span></div>
+            <div class="scene-translation-controls"><div class="language-direction" data-direction-key="normalAlt2">
+              <select aria-label="截图识别翻译原文语言"></select><span>→</span><select aria-label="截图识别翻译目标语言"></select>
+            </div><label class="scene-method"><span>翻译方式</span><select data-method-key="normalAlt2" aria-label="截图识别翻译方式"></select></label></div>
+          </div>
+          <div class="setting-row direction-setting">
+            <div><strong>手动翻译窗口</strong><span>新窗口使用此处设置；窗口内仍可临时切换语言。</span></div>
+            <div class="scene-translation-controls"><div class="language-direction" data-direction-key="normalAlt3">
+              <select aria-label="手动翻译窗口原文语言"></select><span>→</span><select aria-label="手动翻译窗口目标语言"></select>
+            </div><label class="scene-method"><span>翻译方式</span><select data-method-key="normalAlt3" aria-label="手动翻译窗口翻译方式"></select></label></div>
+          </div>
+          <div class="setting-row direction-setting">
+            <div><strong>游戏手动翻译窗口</strong><span>游戏模式下新建手动翻译窗口时使用的默认翻译方向。</span></div>
+            <div class="scene-translation-controls"><div class="language-direction" data-direction-key="game">
+              <select aria-label="游戏翻译原文语言"></select><span>→</span><select aria-label="游戏翻译目标语言"></select>
+            </div><label class="scene-method"><span>翻译方式</span><select data-method-key="game" aria-label="游戏翻译方式"></select></label></div>
+          </div>
+          <div class="setting-row direction-setting">
+            <div><strong>游戏全屏识别翻译</strong><span>游戏全屏识别翻译使用的独立语言方向。</span></div>
+            <div class="scene-translation-controls"><div class="language-direction" data-direction-key="gameFullscreen">
+              <select aria-label="游戏全屏原文语言"></select><span>→</span><select aria-label="游戏全屏目标语言"></select>
+            </div><label class="scene-method"><span>翻译方式</span><select data-method-key="gameFullscreen" aria-label="游戏全屏翻译方式"></select></label></div>
+          </div>
+          <div class="setting-row direction-setting game-region-setting">
+            <div><strong>游戏区域识别翻译</strong><span>框选持续翻译区域时使用独立语言方向。</span></div>
+            <div class="scene-translation-controls"><div class="language-direction" data-direction-key="gameRegion">
+              <select aria-label="游戏区域翻译原文语言"></select><span>→</span><select aria-label="游戏区域翻译目标语言"></select>
+            </div><label class="scene-method"><span>翻译方式</span><select data-method-key="gameRegion" aria-label="游戏区域翻译方式"></select></label></div>
+            <p class="service-help">使用区域识别翻译后拖动框选区域，最多保留 3 个。选满后再次使用区域识别翻译可暂停，再使用一次可恢复；使用清除全部区域可移除全部区域和译文。默认按键和当前绑定请在快捷键设置中查看。</p>
+          </div></div>
+        </section>
+
+        <section class="settings-page" data-page-panel="hotkeys">
+          <div class="hotkey-toolbar">
+            <div class="category-tabs" aria-label="快捷键分类">
+              <button class="category-tab active" data-hotkey-category="common">通用</button>
+              <button class="category-tab" data-hotkey-category="normal">日常</button>
+              <button class="category-tab" data-hotkey-category="game">游戏</button>
+            </div>
+          </div>
+          <p class="hotkey-help">查看分类不会改变当前运行模式，每项仍可绑定多个组合键。</p>
+          <div id="hotkeyList" class="hotkey-list"></div>
+        </section>
+
+        <section class="settings-page" data-page-panel="translation">
+          <div class="service-tabs" aria-label="翻译服务分类">
+            <button class="service-tab active" data-service-panel="free" type="button">免费在线翻译</button>
+            <button class="service-tab" data-service-panel="ai" type="button">AI 精译（API）</button>
+          </div>
+          <section class="service-panel active" data-service-content="free">
+            <div class="free-service-toolbar">
+              <span>使用相同文字依次测试已配置服务</span>
+              <button id="openFreeBenchmark" class="secondary-button" type="button">一键测速</button>
+            </div>
+            <div id="freeServiceList" class="free-service-list">
+              <article class="free-service-row" data-provider="siliconflow"><button class="service-name" data-open-service="siliconflow">&#30789;&#22522;&#27969;&#21160; SiliconFlow</button><i class="connection-dot unknown"></i><span class="benchmark-result">未测速</span><button class="service-guide" data-guide-service="siliconflow">&#20351;&#29992;&#26041;&#27861;</button><span class="saved-state">&#26410;&#37197;&#32622;</span><label><input type="radio" name="preferredFreeProvider" value="siliconflow">&#39318;&#36873;</label></article>
+              <article class="free-service-row" data-provider="modelscope"><button class="service-name" data-open-service="modelscope">&#39764;&#25645;&#31038;&#21306; ModelScope</button><i class="connection-dot unknown"></i><span class="benchmark-result">未测速</span><button class="service-guide" data-guide-service="modelscope">&#20351;&#29992;&#26041;&#27861;</button><span class="saved-state">&#26410;&#37197;&#32622;</span><label><input type="radio" name="preferredFreeProvider" value="modelscope">&#39318;&#36873;</label></article>
+              <article class="free-service-row" data-provider="baidu"><button class="service-name" data-open-service="baidu">&#30334;&#24230;&#32763;&#35793;</button><i class="connection-dot unknown"></i><span class="benchmark-result">未测速</span><button class="service-guide" data-guide-service="baidu">&#20351;&#29992;&#26041;&#27861;</button><span class="saved-state">&#26410;&#37197;&#32622;</span><label><input type="radio" name="preferredFreeProvider" value="baidu">&#39318;&#36873;</label></article>
+              <article class="free-service-row" data-provider="aliyun"><button class="service-name" data-open-service="aliyun">&#38463;&#37324;&#20113;&#26426;&#22120;&#32763;&#35793;</button><i class="connection-dot unknown"></i><span class="benchmark-result">未测速</span><button class="service-guide" data-guide-service="aliyun">&#20351;&#29992;&#26041;&#27861;</button><span class="saved-state">&#26410;&#37197;&#32622;</span><label><input type="radio" name="preferredFreeProvider" value="aliyun">&#39318;&#36873;</label></article>
+            </div>
+            <p class="speed-selection-note">速度参考：百度和阿里云属于传统机器翻译服务，短句通常响应较快；SiliconFlow 和 ModelScope 使用模型翻译，耗时和译文表现可能不同。实际速度还会受文本长度、网络和服务端负载影响。建议用“一键测速”在相同文本、相同方向和相同条件下比较，再选择首选服务；不要用不同文本的历史耗时作严格排名。</p>
+            <div class="service-form free-online-form">
+              <div class="free-service-summary">
+                <div>
+                  <strong>硅基流动 SiliconFlow</strong>
+                  <span>使用腾讯混元专用翻译模型 Hunyuan-MT-7B，仅在你主动测试或手动选择“免费在线”时调用。</span>
+                </div>
+                <div id="freeOnlineStatus" class="provider-pill">未配置</div>
+              </div>
+              <label class="form-field"><span>服务商</span><input id="freeOnlineProvider" type="text" value="硅基流动 SiliconFlow" readonly/></label>
+              <label class="form-field"><span>模型</span><input id="freeOnlineModel" type="text" value="tencent/Hunyuan-MT-7B" readonly/></label>
+              <label class="form-field full-row"><span>API Key</span><input id="freeOnlineApiKey" type="password" autocomplete="off" placeholder="请输入 SiliconFlow API Key"/></label>
+              <p class="service-help">当前模型在官方价格页标记为限时免费，实际收费政策以硅基流动平台最新公告为准。本程序不会自动切换到其他模型，也不会在后台自动调用该服务。</p>
+              <div class="free-test-grid">
+                <label class="form-field"><span>测试方向</span><select id="freeOnlineTestDirection"><option value="zh-CN:en">中文 → 英文</option><option value="en:zh-CN">英文 → 中文</option></select></label>
+                <label class="form-field free-test-text"><span>测试文字</span><textarea id="freeOnlineTestText" rows="3" placeholder="输入一小段测试文本"></textarea></label>
+              </div>
+              <div id="freeOnlineTestResult" class="test-result" hidden></div>
+              <div class="service-actions">
+                <span id="freeOnlineMessage" class="service-status"></span>
+                <button id="testFreeOnlineConnection" class="secondary-button" type="button">测试连接</button>
+                <button id="testFreeOnlineTranslation" class="secondary-button" type="button">测试翻译</button>
+                <button id="saveFreeOnline" class="primary-button" type="button">保存</button>
+              </div>
+            </div>
+            <div class="service-form free-online-form free-provider-section">
+              <div class="free-service-summary">
+                <div><strong>魔搭社区 ModelScope</strong><span>使用 API-Inference 的 Ling-3.0-flash，仅在主动测试或手动翻译窗口选择“魔搭”时调用。</span></div>
+                <div id="modelScopeStatus" class="provider-pill">未配置</div>
+              </div>
+              <label class="form-field"><span>服务商</span><input type="text" value="魔搭社区 ModelScope" readonly/></label>
+              <label class="form-field"><span>模型</span><input type="text" value="inclusionAI/Ling-3.0-flash" readonly/></label>
+              <label class="form-field full-row"><span>访问令牌</span><input id="modelScopeToken" type="password" autocomplete="off" placeholder="请输入魔搭访问令牌"/></label>
+              <p class="service-help">只调用魔搭免费 API-Inference，不会追加 :DashScope 或切换商业 Provider。免费魔粒、限流和模型可用性以魔搭官网为准。代码范例可能显示完整 Token，请勿分享含令牌的截图。</p>
+              <div class="free-test-grid">
+                <label class="form-field"><span>测试方向</span><select id="modelScopeTestDirection"><option value="zh-CN:en">中文 → 英文</option><option value="en:zh-CN">英文 → 中文</option></select></label>
+                <label class="form-field free-test-text"><span>测试文字</span><textarea id="modelScopeTestText" rows="3" placeholder="输入一小段测试文本"></textarea></label>
+              </div>
+              <div id="modelScopeTestResult" class="test-result" hidden></div>
+              <div class="service-actions">
+                <span id="modelScopeMessage" class="service-status"></span>
+                <button id="testModelScopeConnection" class="secondary-button" type="button">测试连接</button>
+                <button id="testModelScopeTranslation" class="secondary-button" type="button">测试翻译</button>
+                <button id="saveModelScope" class="primary-button" type="button">保存</button>
+              </div>
+            </div>
+          </section>
+          <section class="service-panel" data-service-content="ai">
+          <div class="service-form">
+            <div class="translation-preference">
+              <div><strong>默认使用 AI 精译</strong><span>关闭时默认使用免费本地翻译；开启后使用下方 AI 服务。</span></div>
+              <label class="switch"><input id="defaultAiTranslation" type="checkbox"/><span class="switch-track"></span></label>
+            </div>
+            <div id="aiProviderFields" class="provider-fields">
+              <label class="form-field"><span>AI 服务商</span><select id="providerType"></select></label>
+              <label class="form-field"><span>API 地址</span><input id="apiBaseUrl" type="url"/></label>
+              <label class="form-field"><span>模型</span><select id="modelPreset"></select></label>
+              <label id="customModelField" class="form-field" hidden><span>模型 ID</span><input id="modelName" type="text"/></label>
+              <label class="form-field"><span>API Key</span><input id="apiKey" type="password" autocomplete="off"/></label>
+              <p id="providerNote" class="provider-note"></p>
+              <p class="service-help">选择服务商后会自动填写 API 地址，并提供对应模型；如未找到所需模型，可选择手动填写。模型实际可用性取决于平台、地区和账号权限，部分平台提供付费 API，选择预设不代表已开通服务。</p>
+            </div>
+            <div class="service-actions">
+              <span id="serviceStatus" class="service-status"></span>
+              <button id="testService" class="secondary-button">测试连接</button>
+              <button id="saveService" class="primary-button">保存</button>
+            </div>
+          </div>
+          </section>
+        </section>
+        <footer id="buildInfo" class="build-info"></footer>
+      </div>
+    </div>
+
+    <footer class="global-actions"><button id="quitTranslator" class="danger-button">退出 Translator</button></footer>
+  </main>
+
+  <div id="captureOverlay" class="capture-overlay" hidden>
+    <section class="capture-dialog">
+      <img src="../../renderer/assets/clover.svg" alt=""/>
+      <h2>设置新绑定</h2><p>请按下新的快捷键</p>
+      <div id="capturedValue" class="captured-value">等待输入…</div>
+      <p id="captureError" class="capture-error"></p>
+      <div class="capture-actions">
+        <button id="cancelCapture" class="secondary-button">取消</button>
+        <button id="confirmCapture" class="primary-button" disabled>确认</button>
+      </div>
+    </section>
+  </div>
+  <div id="freeBenchmarkOverlay" class="benchmark-overlay" hidden>
+    <section class="benchmark-dialog" role="dialog" aria-modal="true" aria-labelledby="benchmarkTitle">
+      <div class="benchmark-heading"><div><h2 id="benchmarkTitle">免费在线翻译测速</h2><p>四家服务使用相同文字与方向，按顺序独立测试。</p></div><button id="closeFreeBenchmark" class="icon-button" type="button" aria-label="关闭">×</button></div>
+      <div class="benchmark-options">
+        <label class="form-field"><span>翻译方向</span><select id="benchmarkDirection"><option value="zh-CN:en">中文 → English</option><option value="en:zh-CN">English → 中文</option></select></label>
+        <label class="form-field"><span>测试文本</span><select id="benchmarkTextType"><option value="short">内置短文本</option><option value="long">内置长文本</option><option value="custom">自定义文本</option></select></label>
+      </div>
+      <label class="form-field benchmark-text"><span>测试文字</span><textarea id="benchmarkText" rows="5"></textarea></label>
+      <div id="benchmarkResults" class="benchmark-results"></div>
+      <div class="benchmark-actions"><span id="benchmarkMessage"></span><button id="startFreeBenchmark" class="primary-button" type="button">开始测速</button></div>
+    </section>
+  </div>
+  <div id="colorPalette" class="color-palette" hidden>
+    <div id="paletteBoard" class="palette-board"><i id="paletteBoardThumb"></i></div>
+    <label><span>色相</span><input id="paletteHue" type="range" min="0" max="360" step="1"/></label>
+    <label class="palette-hex"><span>HEX</span><input id="paletteHex" type="text" maxlength="7" spellcheck="false"/></label>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="./ai-provider-presets.js"></script>
+  <script src="./color-picker.js"></script>
+  <script src="./renderer.js"></script>
+</body>
+</html>

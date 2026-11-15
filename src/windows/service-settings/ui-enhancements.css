@@ -1,0 +1,6 @@
+.configuration-summary { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:9px 11px; border:1px solid #ead3bd; border-radius:7px; background:#fff4e4; }
+.configuration-summary strong { color:#a24b39; font-size:13px; }
+.configuration-summary strong.configured { color:#527344; }
+.credential-help, .error-share-hint { margin:0 0 12px; color:#79574a; font-size:12px; line-height:1.65; }
+.error-share-hint { padding:8px 10px; border-left:3px solid #dc9b5a; background:#fff3e3; }
+details button { margin-top:8px; }

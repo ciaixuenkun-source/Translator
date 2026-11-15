@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trans</title><link rel="stylesheet" href="./styles.css"><link rel="stylesheet" href="./ui-enhancements.css"></head>
+<body>
+  <main class="shell">
+    <header class="titlebar"><div><strong id="serviceTitle">&#32763;&#35793;&#26381;&#21153;</strong><span id="serviceModel"></span></div><button id="closeButton" aria-label="&#20851;&#38381;">&#215;</button></header>
+    <nav class="tabs"><button class="active" data-tab="config">&#37197;&#32622;&#19982;&#27979;&#35797;</button><button data-tab="guide">&#20351;&#29992;&#25945;&#31243;</button><button data-tab="quota">&#20813;&#36153;&#39069;&#24230;</button></nav>
+    <section class="content active" data-panel="config">
+      <div class="configuration-summary"><span>配置状态</span><strong id="configuredState">正在检查…</strong></div>
+      <div id="credentialFields"></div>
+      <p id="credentialHelp" class="credential-help"></p>
+      <div class="test-grid"><label><span>&#27979;&#35797;&#26041;&#21521;</span><select id="direction"><option value="zh-CN:en">&#20013;&#25991; &#8594; English</option><option value="en:zh-CN">English &#8594; &#20013;&#25991;</option></select></label><label class="wide"><span>&#27979;&#35797;&#25991;&#23383;</span><textarea id="testText" rows="4"></textarea></label></div>
+      <div id="result" class="result" hidden></div><details id="errorDetails" hidden><summary>&#26597;&#30475;&#38169;&#35823;&#35814;&#24773;</summary><pre></pre><button id="copyErrorDetails" type="button">复制错误详情</button></details>
+      <p class="error-share-hint">请求被拒绝或测试失败时，可以复制错误详情交给其他 AI 帮助分析。分享前请检查并遮挡 API Key、Token、APP ID 密钥、AccessKey 等敏感信息。</p>
+      <footer><span id="message"></span><button id="testConnection">&#27979;&#35797;&#36830;&#25509;</button><button id="testTranslation">&#27979;&#35797;&#32763;&#35793;</button><button id="saveButton" class="primary">&#23433;&#20840;&#20445;&#23384;</button></footer>
+    </section>
+    <section class="content prose" data-panel="guide"><div id="guideContent"></div></section>
+    <section class="content prose" data-panel="quota"><div id="quotaContent"></div></section>
+  </main><script src="./renderer.js"></script>
+</body></html>

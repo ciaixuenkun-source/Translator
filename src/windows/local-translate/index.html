@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trans</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body tabindex="-1">
+    <main class="window-shell">
+      <header class="toolbar">
+        <div class="drag-region drag-region-left" aria-hidden="true"></div>
+        <div class="language-controls">
+          <select id="sourceLanguage" aria-label="原文语言"></select>
+          <span class="direction" aria-hidden="true">→</span>
+          <select id="targetLanguage" aria-label="目标语言"></select>
+        </div>
+        <div class="drag-region drag-region-right" aria-hidden="true"></div>
+        <div class="window-actions">
+          <button id="pinButton" class="pin-button" type="button" aria-label="置顶窗口" aria-pressed="false" title="置顶窗口">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 4 8 0-1.5 5 3 3H13v7l-2 2v-9H6.5l3-3z" /></svg>
+          </button>
+          <button id="closeButton" class="close-button" type="button" aria-label="关闭" title="关闭">×</button>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <label class="pane source-pane">
+          <span class="pane-title">原文</span>
+          <textarea id="sourceText" placeholder="输入或粘贴需要翻译的内容" spellcheck="false"></textarea>
+        </label>
+        <section class="pane result-pane" aria-labelledby="resultTitle">
+          <span id="resultTitle" class="pane-title">译文</span>
+          <article id="resultText" class="result-text empty" tabindex="0" aria-live="polite"></article>
+        </section>
+      </section>
+
+      <footer class="footer">
+        <button id="copyButton" class="secondary-button" type="button" disabled>复制</button>
+        <span id="statusText" class="status-text" aria-live="polite">等待翻译</span>
+        <div class="footer-right">
+          <select id="translationSource" class="source-select" aria-label="翻译来源" title="选择本窗口本次翻译使用的来源"></select>
+          <button id="translateButton" class="primary-button" type="button">翻译</button>
+        </div>
+        <span id="copyFeedback" class="copy-feedback" aria-live="polite"></span>
+      </footer>
+    </main>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

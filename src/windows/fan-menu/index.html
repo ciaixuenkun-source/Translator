@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Trans</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main id="fan" class="fan mode-normal layout-central-surround" aria-label="Translator 功能菜单">
+      <button class="fan-item item-primary" data-kind="primary" data-action="textTranslation" type="button">
+        <img class="primary-icon" src="../../renderer/assets/icon-text.svg" alt="" /><span class="primary-label">文本</span>
+      </button>
+      <button class="fan-item item-region" data-kind="region" data-action="areaTranslation" type="button">
+        <img src="../../renderer/assets/icon-region.svg" alt="" /><span>区域</span>
+      </button>
+      <button class="fan-item item-translate" data-kind="translate" data-action="placeholder" type="button">
+        <img src="../../renderer/assets/icon-translate.svg" alt="" /><span>翻译</span>
+      </button>
+      <button class="fan-item item-settings" data-kind="settings" data-action="settings" type="button">
+        <img src="../../renderer/assets/icon-settings.svg" alt="" /><span>设置</span>
+      </button>
+      <div id="notice" class="fan-notice" role="status" aria-live="polite" hidden></div>
+    </main>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

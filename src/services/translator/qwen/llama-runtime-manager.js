@@ -1,0 +1,307 @@
+const fs = require("fs");
+const path = require("path");
+const { spawn, execFile } = require("child_process");
+const {
+  TranslatorCancelledError,
+  TranslatorError
+} = require("../errors");
+const { LOCAL_QWEN_CONFIG, serverArguments } = require("./local-qwen-config");
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function waitWithSignal(promise, signal) {
+  if (!signal) return promise;
+  if (signal.aborted) return Promise.reject(new TranslatorCancelledError());
+  return new Promise((resolve, reject) => {
+    const abort = () => reject(new TranslatorCancelledError());
+    signal.addEventListener("abort", abort, { once: true });
+    promise.then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
+  });
+}
+
+function execFileAsync(file, args) {
+  return new Promise((resolve, reject) => {
+    execFile(file, args, { windowsHide: true }, (error, stdout, stderr) => {
+      if (error) reject(error);
+      else resolve({ stdout, stderr });
+    });
+  });
+}
+
+class LlamaRuntimeManager {
+  constructor({
+    config = LOCAL_QWEN_CONFIG,
+    logPath,
+    spawnImpl = spawn,
+    fetchImpl = fetch,
+    now = () => Date.now()
+  } = {}) {
+    this.config = config;
+    this.logPath = logPath || path.join(config.runtimeDirectory, "translator-llama-server.log");
+    this.spawnImpl = spawnImpl;
+    this.fetchImpl = fetchImpl;
+    this.now = now;
+    this.child = null;
+    this.startPromise = null;
+    this.ready = false;
+    this.activeRequests = 0;
+    this.idleTimer = null;
+    this.logStream = null;
+    this.manualHold = false;
+    this.lastStartError = "";
+    this.statusListeners = new Set();
+  }
+
+  get baseUrl() {
+    return `http://${this.config.host}:${this.config.port}`;
+  }
+
+  availability() {
+    if (!this.config.runtimeDirectory || !this.config.modelDirectory) {
+      return {
+        available: false,
+        reason: "not-configured",
+        missing: [
+          !this.config.runtimeDirectory && "TRANSLATOR_LLAMA_RUNTIME_DIR",
+          !this.config.modelDirectory && "TRANSLATOR_QWEN_MODEL_DIR"
+        ].filter(Boolean)
+      };
+    }
+    if (!fs.existsSync(this.config.serverExecutable)) {
+      return {
+        available: false,
+        reason: "runtime-missing",
+        missing: [this.config.serverExecutable]
+      };
+    }
+    if (!fs.existsSync(this.config.modelPath)) {
+      return {
+        available: false,
+        reason: "model-missing",
+        missing: [this.config.modelPath]
+      };
+    }
+    return { available: true, reason: null, missing: [] };
+  }
+
+  isReady() {
+    return Boolean(this.ready && this.child && this.child.exitCode === null);
+  }
+
+  getStatus() {
+    return {
+      manualHold: this.manualHold,
+      state: this.startPromise && !this.isReady()
+        ? "starting"
+        : this.isReady()
+          ? "running"
+          : this.lastStartError
+            ? "failed"
+            : "stopped",
+      message: this.lastStartError
+    };
+  }
+
+  subscribeStatus(listener) {
+    if (typeof listener !== "function") return () => {};
+    this.statusListeners.add(listener);
+    listener(this.getStatus());
+    return () => this.statusListeners.delete(listener);
+  }
+
+  notifyStatus() {
+    const snapshot = this.getStatus();
+    for (const listener of this.statusListeners) listener(snapshot);
+    return snapshot;
+  }
+
+  async setManualHold(enabled) {
+    this.manualHold = Boolean(enabled);
+    if (!this.manualHold) {
+      this.scheduleIdleShutdown();
+      return { ok: true, snapshot: this.notifyStatus() };
+    }
+    this.clearIdleTimer();
+    this.lastStartError = "";
+    this.notifyStatus();
+    try {
+      await this.ensureReady();
+      return { ok: true, snapshot: this.notifyStatus() };
+    } catch (error) {
+      this.manualHold = false;
+      this.lastStartError = error?.message || "本地模型启动失败";
+      return { ok: false, message: this.lastStartError, snapshot: this.notifyStatus() };
+    }
+  }
+
+  beginRequest() {
+    this.activeRequests += 1;
+    this.clearIdleTimer();
+  }
+
+  endRequest() {
+    this.activeRequests = Math.max(0, this.activeRequests - 1);
+    if (this.activeRequests === 0) this.scheduleIdleShutdown();
+  }
+
+  clearIdleTimer() {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    this.idleTimer = null;
+  }
+
+  scheduleIdleShutdown() {
+    this.clearIdleTimer();
+    if (this.manualHold || this.activeRequests > 0) return;
+    if (this.startPromise && !this.isReady()) {
+      this.startPromise.finally(() => this.scheduleIdleShutdown()).catch(() => undefined);
+      return;
+    }
+    if (!this.child) return;
+    this.idleTimer = setTimeout(() => {
+      this.idleTimer = null;
+      if (this.activeRequests === 0) {
+        this.stop("idle-timeout").catch((error) => {
+          console.error("[qwen] idle shutdown failed", error?.message);
+        });
+      }
+    }, this.config.idleTimeoutMs);
+    this.idleTimer.unref?.();
+  }
+
+  async ensureReady({ signal, onStatus } = {}) {
+    if (signal?.aborted) throw new TranslatorCancelledError();
+    if (this.isReady()) return;
+    const availability = this.availability();
+    if (!availability.available) {
+      console.error("[qwen] local runtime unavailable", availability.missing);
+      if (availability.reason === "not-configured") {
+        throw new TranslatorError(
+          "本地翻译尚未配置。请设置 TRANSLATOR_LLAMA_RUNTIME_DIR 和 TRANSLATOR_QWEN_MODEL_DIR。",
+          { code: "local-model-not-configured" }
+        );
+      }
+      if (availability.reason === "runtime-missing") {
+        throw new TranslatorError(
+          "未找到 llama-server.exe，请检查 TRANSLATOR_LLAMA_RUNTIME_DIR。",
+          { code: "local-runtime-unavailable" }
+        );
+      }
+      throw new TranslatorError(
+        "未找到本地 Qwen 模型，请检查 TRANSLATOR_QWEN_MODEL_DIR。",
+        { code: "local-model-unavailable" }
+      );
+    }
+
+    onStatus?.({ stage: "starting" });
+    if (!this.startPromise) {
+      this.lastStartError = "";
+      this.startPromise = this.startServer()
+        .catch(async (error) => {
+          this.lastStartError = error?.message || "本地模型启动失败";
+          await this.stop("startup-failed").catch(() => undefined);
+          throw error;
+        })
+        .finally(() => {
+          this.startPromise = null;
+          this.notifyStatus();
+        });
+      this.notifyStatus();
+    }
+    await waitWithSignal(this.startPromise, signal);
+  }
+
+  async startServer() {
+    fs.mkdirSync(path.dirname(this.logPath), { recursive: true });
+    this.logStream = fs.createWriteStream(this.logPath, { flags: "a" });
+    const child = this.spawnImpl(
+      this.config.serverExecutable,
+      serverArguments(this.config),
+      {
+        cwd: this.config.runtimeDirectory,
+        windowsHide: true,
+        stdio: ["ignore", "pipe", "pipe"]
+      }
+    );
+    this.child = child;
+    child.stdout?.pipe(this.logStream);
+    child.stderr?.pipe(this.logStream);
+    child.once("exit", () => {
+      if (this.child === child) {
+        this.child = null;
+        this.ready = false;
+      }
+      this.closeLogStream();
+      this.notifyStatus();
+    });
+
+    const deadline = this.now() + this.config.startupTimeoutMs;
+    while (this.now() < deadline) {
+      if (child.exitCode !== null) {
+        throw new TranslatorError("本地翻译模型启动失败", {
+          code: "local-model-start-failed"
+        });
+      }
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 2000);
+      try {
+        const response = await this.fetchImpl(`${this.baseUrl}/health`, {
+          signal: controller.signal
+        });
+        if (response.status === 200) {
+          this.ready = true;
+          this.lastStartError = "";
+          this.notifyStatus();
+          return;
+        }
+      } catch {
+        // The server socket is unavailable while the model is loading.
+      } finally {
+        clearTimeout(timer);
+      }
+      await delay(350);
+    }
+    throw new TranslatorError("本地翻译模型启动超时", {
+      code: "local-model-start-failed"
+    });
+  }
+
+  closeLogStream() {
+    if (!this.logStream) return;
+    this.logStream.end();
+    this.logStream = null;
+  }
+
+  async stop(_reason = "manual") {
+    this.clearIdleTimer();
+    const child = this.child;
+    this.ready = false;
+    if (!child || child.exitCode !== null) {
+      this.child = null;
+      this.closeLogStream();
+      this.notifyStatus();
+      return;
+    }
+
+    const pid = child.pid;
+    const exited = new Promise((resolve) => child.once("exit", resolve));
+    child.kill();
+    let completed = await Promise.race([exited.then(() => true), delay(8000).then(() => false)]);
+    if (!completed && pid) {
+      await execFileAsync("taskkill.exe", ["/PID", String(pid), "/T", "/F"])
+        .catch((error) => console.error("[qwen] forced shutdown failed", error?.message));
+      completed = await Promise.race([exited.then(() => true), delay(5000).then(() => false)]);
+    }
+    if (!completed) console.error("[qwen] llama-server did not exit cleanly", pid);
+    if (this.child === child) this.child = null;
+    this.closeLogStream();
+    this.notifyStatus();
+  }
+
+  dispose() {
+    return this.stop("translator-exit");
+  }
+}
+
+module.exports = { LlamaRuntimeManager, waitWithSignal };

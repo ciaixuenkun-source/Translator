@@ -1,0 +1,47 @@
+:root { font-family: "Microsoft YaHei UI", sans-serif; color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: transparent; }
+.fan { position: relative; width: 100%; height: 100%; --tone: #ed5a35; --ink: #572116; --soft: #fff8ef; }
+.fan.mode-game { --tone: #2478dc; --ink: #173c72; --soft: #f3f9ff; }
+.fan-item {
+  position: absolute; left: var(--anchor-x); top: var(--anchor-y); width: 57px; height: 57px;
+  margin: -28.5px 0 0 -28.5px; padding: 6px 4px 5px; border: 1px solid color-mix(in srgb, var(--tone) 34%, white);
+  border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  background: color-mix(in srgb, var(--soft) 94%, transparent); color: var(--ink); cursor: pointer;
+  box-shadow: 0 5px 13px color-mix(in srgb, var(--tone) 20%, transparent);
+  opacity: 0; transform: translate(0, 0) scale(.68); transition: filter 120ms ease;
+}
+.fan-item img { width: 22px; height: 22px; }
+.fan.mode-game .fan-item img { filter: hue-rotate(165deg) saturate(1.35); }
+.fan-item span:last-child { font-size: 12px; line-height: 1; font-weight: 700; letter-spacing: 0; white-space: nowrap; }
+.fan.opening .fan-item { animation: fan-open 1s cubic-bezier(.2,.78,.2,1) forwards; }
+.fan.open .fan-item { opacity: 1; transform: translate(calc(var(--tx) + var(--menu-nudge-x, 0px)), calc(var(--ty) + var(--menu-nudge-y, 0px))) scale(1); }
+.fan.opening .fan-item:nth-child(2) { animation-delay: 90ms; }
+.fan.opening .fan-item:nth-child(3) { animation-delay: 180ms; }
+.fan.opening .fan-item:nth-child(4) { animation-delay: 270ms; }
+.fan-item.pressed { animation: fan-press 260ms ease both !important; }
+.fan-item:hover { filter: brightness(1.04); }
+
+.fan-notice {
+  position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+  max-width: 240px; padding: 8px 12px; border-radius: 10px;
+  background: color-mix(in srgb, var(--soft) 96%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tone) 28%, white);
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--tone) 16%, transparent);
+  color: var(--ink); font-size: 12px; line-height: 1.35; text-align: center;
+  pointer-events: none; opacity: 0; transition: opacity 140ms ease;
+}
+.fan-notice.visible { opacity: 1; }
+
+@keyframes fan-open {
+  0% { opacity: 0; transform: translate(0, 0) scale(.68); }
+  65% { opacity: 1; transform: translate(calc((var(--tx) + var(--menu-nudge-x, 0px)) * 1.04), calc((var(--ty) + var(--menu-nudge-y, 0px)) * 1.04)) scale(1.04); }
+  100% { opacity: 1; transform: translate(calc(var(--tx) + var(--menu-nudge-x, 0px)), calc(var(--ty) + var(--menu-nudge-y, 0px))) scale(1); }
+}
+@keyframes fan-press {
+  0%, 100% { opacity: 1; transform: translate(calc(var(--tx) + var(--menu-nudge-x, 0px)), calc(var(--ty) + var(--menu-nudge-y, 0px))) scale(1); }
+  50% { opacity: 1; transform: translate(calc(var(--tx) + var(--menu-nudge-x, 0px)), calc(var(--ty) + var(--menu-nudge-y, 0px))) scale(.9); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fan.opening .fan-item { animation-duration: 1ms; animation-delay: 0ms; }
+}
