@@ -77,7 +77,7 @@ test("SiliconFlow tutorial follows the verified compact account and API-key flow
 });
 
 test("SiliconFlow tutorial leaves model and policy decisions to Translator and the quota page", () => {
-  const siliconFlowBlock = renderer.match(/siliconflow:\s*\{[\s\S]*?\n  \},\n  modelscope:/)?.[0] || "";
+  const siliconFlowBlock = renderer.match(/siliconflow:\s*\{[\s\S]*?\r?\n  \},\r?\n  modelscope:/)?.[0] || "";
   assert.doesNotMatch(siliconFlowBlock, /\["核对指定模型"/);
   assert.doesNotMatch(siliconFlowBlock, /\["查看当前政策"/);
   assert.match(siliconFlowBlock, /在 Translator 中配置 API 密钥/);
@@ -102,7 +102,7 @@ test("SiliconFlow quota page distinguishes free pricing, rate limits, risks, and
 });
 
 test("ModelScope guide uses the compact ordinary-user token flow without developer setup", () => {
-  const modelScopeBlock = renderer.match(/modelscope:\s*\{[\s\S]*?\n  \},\n  baidu:/)?.[0] || "";
+  const modelScopeBlock = renderer.match(/modelscope:\s*\{[\s\S]*?\r?\n  \},\r?\n  baidu:/)?.[0] || "";
   for (const text of [
     "个人设置 → 访问令牌 → 新建访问令牌",
     "权限选择“仅读”",
@@ -134,7 +134,7 @@ test("ModelScope quota page records the fixed verification date and separates gr
 });
 
 test("Baidu guide is compact and distinguishes ordinary general text credentials", () => {
-  const block = renderer.match(/baidu:\s*\{[\s\S]*?\n  \},\n  aliyun:/)?.[0] || "";
+  const block = renderer.match(/baidu:\s*\{[\s\S]*?\r?\n  \},\r?\n  aliyun:/)?.[0] || "";
   for (const text of [
     "标准版不要求个人实名认证",
     "高级版需要个人认证",
@@ -167,7 +167,7 @@ test("Baidu quota page records current tiers, character rules, and charging risk
 });
 
 test("Aliyun guide uses TranslateGeneral with a least-privilege RAM user flow", () => {
-  const block = renderer.match(/aliyun:\s*\{[\s\S]*?\n  \}\n\};/)?.[0] || "";
+  const block = renderer.match(/aliyun:\s*\{[\s\S]*?\r?\n  \}\r?\n\};/)?.[0] || "";
   for (const text of [
     "机器翻译通用版",
     "通用版 TranslateGeneral",
